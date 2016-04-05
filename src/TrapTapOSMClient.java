@@ -14,7 +14,7 @@ public class TrapTapOSMClient {
 		final String dbDir = "/Users/eytanmoudahi/Downloads/Overpass-API-test754_osx-2/src/build/db";
 		
 		try {
-			ProcessBuilder builder = new ProcessBuilder("/bin/osm3s_query", "--db-dir=" + dbDir);
+			ProcessBuilder builder = new ProcessBuilder("/Users/eytanmoudahi/overpass/bin/osm3s_query", "--db-dir=" + dbDir);
 			builder.redirectErrorStream(true);
 			Process process = builder.start();
 						

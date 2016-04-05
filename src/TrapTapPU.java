@@ -44,6 +44,8 @@ public class TrapTapPU {
 		System.out.print("All done!");
 	}
 	
+	
+	
 	public static int tileIndex(double latitude, double longitude){
 		
 		final double MIN_LAT = -90.0;
@@ -87,12 +89,11 @@ public class TrapTapPU {
 		}
 	}
 	
-	public static String process(double minLat, double minLong, double maxLat, double maxLong, int tileIndex)
+	public static void process(double minLat, double minLong, double maxLat, double maxLong, int tileIndex)
 	{
 		String query = TrapTapOSMClient.query(minLat, minLong, maxLat, maxLong);
 		String xml = TrapTapOSMClient.executeQuery(query);
-		String url = TrapTapS3Client.uploadString(xml, key(minLat, minLong, maxLat, maxLong), tileIndex);
-		return url;
+		TrapTapS3Client.uploadString(xml, key(minLat, minLong, maxLat, maxLong), tileIndex);
 	}
 	
 	private static String key(double minLat, double minLong, double maxLat, double maxLong)

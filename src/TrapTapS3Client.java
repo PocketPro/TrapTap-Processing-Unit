@@ -3,7 +3,9 @@
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.util.zip.GZIPOutputStream;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -63,49 +65,53 @@ public class TrapTapS3Client {
             System.out.println("AWS Error Code:   " + ase.getErrorCode());
             System.out.println("Error Type:       " + ase.getErrorType());
             System.out.println("Request ID:       " + ase.getRequestId());
+            System.out.println("Tile Index:       " + request.getMetadata().getUserMetaDataOf("tile-index"));
         } catch (AmazonClientException ace) {
             System.out.println("Caught an AmazonClientException, which means the client encountered "
                     + "a serious internal problem while trying to communicate with S3, "
                     + "such as not being able to access the network.");
             System.out.println("Error Message: " + ace.getMessage());
+            System.out.println("Tile Index:       " + request.getMetadata().getUserMetaDataOf("tile-index"));
         }
         
         return null;
     }
 	
-	public static String uploadString(String contents, String key, int tileIndex) {
+	public static void uploadString(String contents, String key, int tileIndex) {
 		
 		assert contents != null;
 		assert key != null;
 				
-//		BufferedWriter writer = null;
-//		File file = null;
-//        try {
-//            //create a temporary file
-//            file = new File("TrapTapPU_tileIndex");
-//
-//            writer = new BufferedWriter(new FileWriter(file));
-//            writer.write(contents);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            try {
-//                // Close the writer regardless of what happens...
-//                writer.close();
-//            } catch (Exception e) {
-//            }
-//        }		
-//		
-//		ObjectMetadata metaData = new ObjectMetadata();
-//		metaData.addUserMetadata("tile-index", String.valueOf(tileIndex));
-//		
-//		PutObjectRequest request = new PutObjectRequest(BUCKET_NAME, key, file);
-//		request.setMetadata(metaData);
-//		
-//		upload(new PutObjectRequest(BUCKET_NAME, key, file));
-//		
-//		file.delete();
+		BufferedWriter writer = null;
+		File file = null;
+        try {
+            //create a temporary file
+            file = new File("TrapTapPU_" + tileIndex + ".xml");
+            
+            writer = new BufferedWriter(new FileWriter(file));
+            writer.write(contents);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                // Close the writer regardless of what happens...
+                writer.close();
+            } catch (Exception e) {
+            	e.printStackTrace();
+            }
+        }		
 		
+		ObjectMetadata metaData = new ObjectMetadata();
+		metaData.addUserMetadata("tile-index", String.valueOf(tileIndex));
+		
+		PutObjectRequest request = new PutObjectRequest(BUCKET_NAME, key, file);
+		request.setMetadata(metaData);
+		
+		upload(request);
+		
+		file.delete();
+		
+		/*
 		byte[] bytes = contents.getBytes();
 		ByteArrayInputStream stream = new ByteArrayInputStream(contents.getBytes());
 		
@@ -114,6 +120,7 @@ public class TrapTapS3Client {
 		metaData.setContentLength(bytes.length);
 				
 		return upload(new PutObjectRequest(BUCKET_NAME, key, stream, metaData));
+		*/
 	}
 	
     public static String uploadFile(String filePath, String key) {
