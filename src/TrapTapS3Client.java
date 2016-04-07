@@ -1,10 +1,10 @@
 
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.OutputStreamWriter;
 import java.util.zip.GZIPOutputStream;
 
 import com.amazonaws.AmazonClientException;
@@ -22,7 +22,7 @@ public class TrapTapS3Client {
 
 	final static String BUCKET_NAME = "traptap";
 	
-	private static String upload(PutObjectRequest request) {
+	private static boolean upload(PutObjectRequest request) {
     	
         AWSCredentials credentials = null;
         try {
@@ -54,7 +54,7 @@ public class TrapTapS3Client {
             
             String resourceUrl = "https://s3.amazonaws.com/" + request.getBucketName() + "/" + request.getKey();
 //            System.out.println("Uploaded file available at URL: " + resourceUrl);
-            return resourceUrl;
+            return true;
             
 
         } catch (AmazonServiceException ase) {
@@ -74,10 +74,10 @@ public class TrapTapS3Client {
             System.out.println("Tile Index:       " + request.getMetadata().getUserMetaDataOf("tile-index"));
         }
         
-        return null;
+        return false;
     }
 	
-	public static void uploadString(String contents, String key, int tileIndex) {
+	public static boolean uploadString(String contents, String key, int tileIndex) {
 		
 		assert contents != null;
 		assert key != null;
@@ -87,8 +87,8 @@ public class TrapTapS3Client {
         try {
             //create a temporary file
             file = new File("TrapTapPU_" + tileIndex + ".xml");
-            
-            writer = new BufferedWriter(new FileWriter(file));
+            GZIPOutputStream zip = new GZIPOutputStream(new FileOutputStream(file));
+            writer = new BufferedWriter(new OutputStreamWriter(zip, "UTF-8"));
             writer.write(contents);
         } catch (Exception e) {
             e.printStackTrace();
@@ -103,13 +103,16 @@ public class TrapTapS3Client {
 		
 		ObjectMetadata metaData = new ObjectMetadata();
 		metaData.addUserMetadata("tile-index", String.valueOf(tileIndex));
+		metaData.setContentEncoding("gzip");
 		
-		PutObjectRequest request = new PutObjectRequest(BUCKET_NAME, key, file);
+		PutObjectRequest request = new PutObjectRequest(BUCKET_NAME, key + ".gz", file);
 		request.setMetadata(metaData);
 		
-		upload(request);
+		boolean success = upload(request);
 		
 		file.delete();
+		
+		return success;
 		
 		/*
 		byte[] bytes = contents.getBytes();
@@ -123,14 +126,14 @@ public class TrapTapS3Client {
 		*/
 	}
 	
-    public static String uploadFile(String filePath, String key) {
-    	try {
-    		File file = new File(filePath);
-    		return upload(new PutObjectRequest(BUCKET_NAME, key, file));
-    	}
-    	catch (NullPointerException e) {
-    		System.out.println("No file to upload");
-    		return null;
-    	}
-    }
+//    public static String uploadFile(String filePath, String key) {
+//    	try {
+//    		File file = new File(filePath);
+//    		return upload(new PutObjectRequest(BUCKET_NAME, key, file));
+//    	}
+//    	catch (NullPointerException e) {
+//    		System.out.println("No file to upload");
+//    		return null;
+//    	}
+//    }
 }

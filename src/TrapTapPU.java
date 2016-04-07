@@ -20,19 +20,32 @@ public class TrapTapPU {
 		final double dLat = 0.1;
 		final double dLong = 0.1;
 				
-		if (tileIndex(49.1044, -122.8011) != 5008171) {
-			System.out.println("Failed tileIndex test");
-		}
-		
 		ExecutorService executor = Executors.newCachedThreadPool();
-//		executor.execute(new RunnableProcess(49.1, -122.9, 49.2, -122.8, 5008171));
 		
+		long start = System.currentTimeMillis();
+		long numFiles = 0;
+		
+		// Vancouver
 		for (double i = MIN_LAT; i < MAX_LAT; i += dLat) {
 			for (double j = MIN_LONG; j < MAX_LONG; j += dLong) {
 				int tileIndex = tileIndex(i,j);
 				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
+				++numFiles;
 			}
 		}
+		
+		// Winnipeg
+		for (double i = 49.5; i < 50.3; i += dLat) {
+			for (double j = -97.7; j < -96.4; j += dLong) {
+				int tileIndex = tileIndex(i,j);
+				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
+				++numFiles;
+			}
+		}
+		
+		// I tend to have trouble with this tile.
+//		executor.execute(new RunnableProcess(49.10, -122.80, 49.20, -122.70, 5008171)); // async
+		
 		
 		executor.shutdown();
 		try {
@@ -40,8 +53,10 @@ public class TrapTapPU {
 		} catch (InterruptedException e) {
 
 		}		
-
-		System.out.print("All done!");
+		
+		long stop = System.currentTimeMillis();
+		long elapsed = stop - start;
+		System.out.print("All done! " + numFiles + " files in " + elapsed + "ms.");
 	}
 	
 	
@@ -93,7 +108,16 @@ public class TrapTapPU {
 	{
 		String query = TrapTapOSMClient.query(minLat, minLong, maxLat, maxLong);
 		String xml = TrapTapOSMClient.executeQuery(query);
-		TrapTapS3Client.uploadString(xml, key(minLat, minLong, maxLat, maxLong), tileIndex);
+		
+		int maxRetry = 3;
+		for (int i = 0; i < maxRetry; ++i) {
+			boolean success = TrapTapS3Client.uploadString(xml, key(minLat, minLong, maxLat, maxLong), tileIndex);
+			if (success) {
+				break;
+			} else {
+				System.out.println("retrying...");
+			}
+		}
 	}
 	
 	private static String key(double minLat, double minLong, double maxLat, double maxLong)
