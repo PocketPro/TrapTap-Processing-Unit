@@ -3,7 +3,6 @@
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.OutputStreamWriter;
 import java.util.zip.GZIPOutputStream;
 
@@ -52,7 +51,7 @@ public class TrapTapS3Client {
 //            System.out.println("Uploading a new object to S3 from a file");
             s3.putObject(request);
             
-            String resourceUrl = "https://s3.amazonaws.com/" + request.getBucketName() + "/" + request.getKey();
+//            String resourceUrl = "https://s3.amazonaws.com/" + request.getBucketName() + "/" + request.getKey();
 //            System.out.println("Uploaded file available at URL: " + resourceUrl);
             return true;
             
@@ -72,6 +71,10 @@ public class TrapTapS3Client {
                     + "such as not being able to access the network.");
             System.out.println("Error Message: " + ace.getMessage());
             System.out.println("Tile Index:       " + request.getMetadata().getUserMetaDataOf("tile-index"));
+        } catch (Exception e) {
+        	e.printStackTrace();
+        } catch (Throwable e) {
+        	e.printStackTrace();
         }
         
         return false;

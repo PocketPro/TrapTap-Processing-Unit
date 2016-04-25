@@ -19,8 +19,9 @@ public class TrapTapPU {
 		final double MAX_LONG = -122.0;
 		final double dLat = 0.1;
 		final double dLong = 0.1;
-				
-		ExecutorService executor = Executors.newCachedThreadPool();
+		
+//		ExecutorService executor = Executors.newCachedThreadPool();
+		ExecutorService executor = Executors.newFixedThreadPool(5);
 		
 		long start = System.currentTimeMillis();
 		long numFiles = 0;
@@ -28,7 +29,7 @@ public class TrapTapPU {
 		// Vancouver
 		for (double i = MIN_LAT; i < MAX_LAT; i += dLat) {
 			for (double j = MIN_LONG; j < MAX_LONG; j += dLong) {
-				int tileIndex = tileIndex(i,j);
+				int tileIndex = tileIndex(i + dLat/2.0,j + dLong/2.0); // use the midpoint for getting tileIndex
 				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
 				++numFiles;
 			}
@@ -37,7 +38,7 @@ public class TrapTapPU {
 		// Winnipeg
 		for (double i = 49.5; i < 50.3; i += dLat) {
 			for (double j = -97.7; j < -96.4; j += dLong) {
-				int tileIndex = tileIndex(i,j);
+				int tileIndex = tileIndex(i + dLat/2.0,j + dLong/2.0); // use the midpoint for getting tileIndex
 				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
 				++numFiles;
 			}
@@ -109,13 +110,21 @@ public class TrapTapPU {
 		String query = TrapTapOSMClient.query(minLat, minLong, maxLat, maxLong);
 		String xml = TrapTapOSMClient.executeQuery(query);
 		
-		int maxRetry = 3;
+		int maxRetry = 5;
 		for (int i = 0; i < maxRetry; ++i) {
 			boolean success = TrapTapS3Client.uploadString(xml, key(minLat, minLong, maxLat, maxLong), tileIndex);
 			if (success) {
 				break;
-			} else {
+			} else if (i < maxRetry - 2) {
 				System.out.println("retrying...");
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else {
+				System.out.println("Failed!");
 			}
 		}
 	}
