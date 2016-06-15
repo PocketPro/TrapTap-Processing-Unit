@@ -4,7 +4,11 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.zip.GZIPOutputStream;
 
-
+/**
+ * Use this class to export tiles to the local file system. 
+ * @author eytanmoudahi
+ *
+ */
 public class TrapTapLocalExporter {
 
 	/**
@@ -21,52 +25,8 @@ public class TrapTapLocalExporter {
 		
 		for (double i = MIN_LAT; i < MAX_LAT; i += dLat) {
 			for (double j = MIN_LONG; j < MAX_LONG; j += dLong) {
-				
 				int tileIndex = TrapTapPU.tileIndex(i,j);
-				process(i, j, i+dLat, j+dLong, tileIndex);
-				
-//				int tileIndex = TrapTapPU.tileIndex(i,j);
-//				
-//				String query = TrapTapOSMClient.query(i, j, i+dLat, j+dLong);
-//				String xml = TrapTapOSMClient.executeQuery(query);
-//				
-//				BufferedWriter writer = null;
-//				File file = null;
-//		        try {
-//		            //create a temporary file
-//		            file = new File("TrapTapPU_" + tileIndex + ".xml");
-//		            GZIPOutputStream zip = new GZIPOutputStream(new FileOutputStream(file));
-//		            writer = new BufferedWriter(new OutputStreamWriter(zip, "UTF-8"));
-//		            writer.write(xml);
-//		        } catch (Exception e) {
-//		            e.printStackTrace();
-//		        } finally {
-//		            try {
-//		                // Close the writer regardless of what happens...
-//		                writer.close();
-//		            } catch (Exception e) {
-//		            	e.printStackTrace();
-//		            }
-//		        }		
-				
-//				BufferedWriter writer = null;
-//				File file = null;
-//		        try {
-//		            //create a temporary file
-//		            file = new File("/Users/eytanmoudahi/TrapTapPU_" + tileIndex + ".xml");
-//		
-//		            writer = new BufferedWriter(new FileWriter(file));
-//		            writer.write(xml);
-//		        } catch (Exception e) {
-//		            e.printStackTrace();
-//		        } finally {
-//		            try {
-//		                // Close the writer regardless of what happens...
-//		                writer.close();
-//		            } catch (Exception e) {
-//		            }
-//		        }		
-				
+				process(i, j, i+dLat, j+dLong, tileIndex);				
 			}
 		}
 	}
@@ -75,15 +35,18 @@ public class TrapTapLocalExporter {
 	{
 		String query = TrapTapOSMClient.query(minLat, minLong, maxLat, maxLong);
 		String xml = TrapTapOSMClient.executeQuery(query);
-		
+		TrapTapLocalExporter.writeToFile(xml, Integer.toString(tileIndex));
+	}
+	
+	public static void writeToFile(String contents, String key) {
 		BufferedWriter writer = null;
 		File file = null;
         try {
             //create a temporary file
-            file = new File("/Users/eytanmoudahi/TrapTapPU_" + tileIndex + ".xml.gz");
+            file = new File("/Users/eytanmoudahi/TrapTapPU_" + key + ".xml.gz");
             GZIPOutputStream zip = new GZIPOutputStream(new FileOutputStream(file));
             writer = new BufferedWriter(new OutputStreamWriter(zip, "UTF-8"));
-            writer.write(xml);
+            writer.write(contents);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
