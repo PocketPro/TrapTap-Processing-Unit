@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 public class TrapTapPU {
 
+	private static final double dLat = 0.1;
+	private static final double dLong = 0.1;
 	private static long start = 0;
 	
 	/**
@@ -18,22 +20,17 @@ public class TrapTapPU {
 	 */
 	public static void main(String[] args) {
 		
+		// Print system out to file.
 		PrintStream out;
 		try {
-			out = new PrintStream(new FileOutputStream("traptap_test.txt"));
+			out = new PrintStream(new FileOutputStream("traptap_test.txt", true));
 			System.setOut(out);
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		}	
+		}
 		
-		final double MIN_LAT = 48.0;
-		final double MIN_LONG = -124.0;
-		final double MAX_LAT = 51.0;
-		final double MAX_LONG = -121.0;
-		final double dLat = 0.1;
-		final double dLong = 0.1;
-		
+		// Choose whether you want to used a fixed thread pool or a cached thread pool.
 //		ExecutorService executor = Executors.newCachedThreadPool();
 		ExecutorService executor = Executors.newFixedThreadPool(5);
 		
@@ -41,44 +38,19 @@ public class TrapTapPU {
 		long numFiles = 0;
 		
 		// Vancouver
-//		for (double i = MIN_LAT; i < MAX_LAT; i += dLat) {
-//			for (double j = MIN_LONG; j < MAX_LONG; j += dLong) {
-//				int tileIndex = tileIndex(i + dLat/2.0,j + dLong/2.0); // use the midpoint for getting tileIndex
-//				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
-//				++numFiles;
-//			}
-//		}
+//		numFiles += processVancouver(executor);
 		
 		// Winnipeg
-//		for (double i = 49.5; i < 50.3; i += dLat) {
-//			for (double j = -97.7; j < -96.4; j += dLong) {
-//				int tileIndex = tileIndex(i + dLat/2.0,j + dLong/2.0); // use the midpoint for getting tileIndex
-//				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
-//				++numFiles;
-//			}
-//		}
+//		numFiles += processWinnipeg(executor);
 		
 		// Cupertino
-//		for (double i = 37.0; i < 38.0; i += dLat) {
-//			for (double j = -123; j < -122; j += dLong) {
-//				int tileIndex = tileIndex(i + dLat/2.0,j + dLong/2.0); // use the midpoint for getting tileIndex
-//				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
-//				++numFiles;
-//			}
-//		}
+//		numFiles += processCupertino(executor);
 		
-		// World
-		for (double i = -90.0; i < 90.0; i += dLat) {
-			for (double j = -180.0; j < 180.0; j += dLong) {
-				int tileIndex = tileIndex(i + dLat/2.0,j + dLong/2.0); // use the midpoint for getting tileIndex
-				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
-				++numFiles;
-			}
-		}		
+		// Process World
+		numFiles += processWorld(executor, -90, -180);
 		
-		// I tend to have trouble with this tile.
-//		executor.execute(new RunnableProcess(49.10, -122.80, 49.20, -122.70, 5008171)); // async
-		
+		// Resume from tile
+//		numFiles += processWorld(executor, 1106715)
 		
 		executor.shutdown();
 		try {
@@ -92,7 +64,59 @@ public class TrapTapPU {
 		System.out.print("All done! " + numFiles + " files in " + elapsed + "ms.");
 	}
 	
+	public static int processWinnipeg(ExecutorService executor) {
+		int numFiles = 0;
+		for (double i = 49.5; i < 50.3; i += dLat) {
+			for (double j = -97.7; j < -96.4; j += dLong) {
+				int tileIndex = tileIndex(i + dLat/2.0,j + dLong/2.0); // use the midpoint for getting tileIndex
+				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
+				++numFiles;
+			}
+		}
+		return numFiles;
+	}
 	
+	public static int processVancouver(ExecutorService executor) {
+		int numFiles = 0;
+		for (double i = 48.0; i < 51.0; i += dLat) {
+			for (double j = -124.0; j < -121.0; j += dLong) {
+				int tileIndex = tileIndex(i + dLat/2.0,j + dLong/2.0); // use the midpoint for getting tileIndex
+				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
+				++numFiles;
+			}
+		}		
+		return numFiles;
+	}
+	
+	public static int processCupertino(ExecutorService executor) {
+		int numFiles = 0;
+		for (double i = 37.0; i < 38.0; i += dLat) {
+			for (double j = -123; j < -122; j += dLong) {
+				int tileIndex = tileIndex(i + dLat/2.0,j + dLong/2.0); // use the midpoint for getting tileIndex
+				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
+				++numFiles;
+			}
+		}
+		return numFiles;
+	}
+	
+	public static int processWorld(ExecutorService executor, int startTileIndex) {
+		double startLat = -90.0 + Math.floor(startTileIndex / 3600) * 0.1;
+		double startLong = -180.0 + (startTileIndex - Math.floor(startTileIndex / 3600)*3600)*0.1; 
+		return processWorld(executor, startLat, startLong);
+	}
+	
+	public static int processWorld(ExecutorService executor, double startLat, double startLong) {
+		int numFiles = 0;
+		for (double i = startLat; i < 90.0; i += dLat) {
+			for (double j = startLong; j < 180.0; j += dLong) {
+				int tileIndex = tileIndex(i + dLat/2.0,j + dLong/2.0); // use the midpoint for getting tileIndex
+				executor.execute(new RunnableProcess(i, j, i+dLat, j+dLong, tileIndex)); // async
+				++numFiles;
+			}
+		}
+		return numFiles;
+	}
 	
 	public static int tileIndex(double latitude, double longitude){
 		
@@ -144,8 +168,7 @@ public class TrapTapPU {
 		
 		int maxRetry = 5;
 		for (int i = 0; i < maxRetry; ++i) {
-			boolean success = TrapTapS3Client.uploadString(xml, key(minLat, minLong, maxLat, maxLong), "traptap.world", tileIndex);
-//			boolean success = TrapTapS3Client.uploadString(xml, key(minLat, minLong, maxLat, maxLong), tileIndex);
+			boolean success = TrapTapS3Client.uploadString(xml, key(minLat, minLong, maxLat, maxLong), tileIndex);
 			if (success) {
 				break;
 			} else if (i < maxRetry - 2) {
