@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 
 /**
  * Use this class to run queries on an OSM databse on the local machine.
@@ -11,14 +12,11 @@ import java.nio.charset.Charset;
  */
 public class TrapTapOSMClient {
 
-	public static String executeQuery(String query) {
-		
+	public static String executeQuery(String dbDir, String execDir, String query) {
 		String retValue = null;
 		
-		final String dbDir = "/Users/eytanmoudahi/Downloads/Overpass-API-test754_osx-2/src/build/db";
-		
 		try {
-			ProcessBuilder builder = new ProcessBuilder("/Users/eytanmoudahi/overpass/bin/osm3s_query", "--db-dir=" + dbDir);
+			ProcessBuilder builder = new ProcessBuilder(execDir + "/bin/osm3s_query", "--db-dir=" + dbDir);
 			builder.redirectErrorStream(true);
 			Process process = builder.start();
 						
@@ -56,6 +54,57 @@ public class TrapTapOSMClient {
 		}
 		
 		return retValue;
+	}
+	
+	public static String executeQuery(String query) {
+		
+		final String dbDir = "/Users/eytanmoudahi/Downloads/Overpass-API-test754_osx-2/src/build/db";
+		final String execDir = "/Users/eytanmoudahi/overpass";
+		return executeQuery(dbDir, execDir, query);
+		
+//		String retValue = null;
+//		
+//		final String dbDir = "/Users/eytanmoudahi/Downloads/Overpass-API-test754_osx-2/src/build/db";
+//		
+//		try {
+//			ProcessBuilder builder = new ProcessBuilder("/Users/eytanmoudahi/overpass/bin/osm3s_query", "--db-dir=" + dbDir);
+//			builder.redirectErrorStream(true);
+//			Process process = builder.start();
+//						
+//			InputStream is = process.getInputStream();
+//			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+//
+//			// Execute Query
+//			process.getOutputStream().write(query.getBytes(Charset.forName("UTF-8")));
+//			process.getOutputStream().close();			
+//			
+//			// Read Data
+//			StringBuilder xmlBuilder = new StringBuilder(1024*1024*7);
+//			String line = null;
+//			while ((line = reader.readLine()) != null) {
+//				xmlBuilder.append(line);
+//				xmlBuilder.append("\n");
+//			}
+//			
+//			// remove the final \n
+//			xmlBuilder.deleteCharAt(xmlBuilder.length()-1); 
+//			
+//			// remove the preamble
+//			int endIndex = xmlBuilder.indexOf("<");
+//			if (endIndex == -1) {
+//				// TODO: Figure out why there was no preamble...
+//			} else {
+//				xmlBuilder.replace(0, endIndex, "");
+//			}
+//			
+//			String xml = xmlBuilder.toString();
+//			retValue = xml;
+//			
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		
+//		return retValue;
 	}
 	
 	public static String query(double minLat, double minLong, double maxLat, double maxLong) {
