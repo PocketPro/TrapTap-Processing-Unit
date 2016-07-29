@@ -59,7 +59,7 @@ public class TrapTapPU {
 		long numFiles = 0;
 		
 		// Vancouver
-		numFiles += processVancouver(executor);
+//		numFiles += processVancouver(executor);
 		
 		// Winnipeg
 //		numFiles += processWinnipeg(executor);
@@ -68,7 +68,7 @@ public class TrapTapPU {
 //		numFiles += processCupertino(executor);
 		
 		// Process World
-//		numFiles += processWorld(executor, -90, -180);
+		numFiles += processWorld(executor, 0);
 		
 		// Resume from tile
 //		numFiles += processWorld(executor, 4633070);
